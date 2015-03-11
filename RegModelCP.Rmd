@@ -1,0 +1,129 @@
+---
+title: "Regression Models Course Project"
+author: "Michael Atkins"
+date: "Tuesday, March 10, 2015"
+output: html_document
+---
+
+EXECUTIVE SUMMARY
+
+This report was undertaken to examine two questions for Motor Trend magazine: 1) Is an automatic or manual transmission better for MPG, and 2) What is the quantifaction of MPG difference between automatic and manual transmissions? In summary, I determined that an automboile with manual over automatic transmission provides a statistically significant improvement in MPG by 1.48 MPG when accounting for the effects of other independent influencing variables. All figures described herein are included in the Appendix per the course project instructions. Note that no units were converted during this analysis.
+
+EXPLORING THE DATA
+
+I initially summarized the regression of the dependent MPG variable by the independent AM factor per below and noted that it appeared that MPG and AM (transmission) were correlated with an adjusted R-squared value of 33.9% and a P-value of > 0.001. I noted that the mean of the MPG for the automatic transmission (AM = 0) was 17.15 MPG while that for the manual transmission (AM = 1) was 24.4 MPG, which infers a large difference. The 95% confidence interval of -11.3 to -3.2 obtained from the T Test strongly suggets significance between AM and MPG. See "Appendix 2"  
+
+I then explored the data utilizing a collorized scatterplot matrix and determined that the biggest determinates of MPG overall other than transmission were HP, CYL, DISP, and WT, which makes sense empirically. See "Appendix 3" 
+
+I further explored the relationships between the HP, CYL, DISP, and WT variables utilizing regression regression models, plotting each model with regression lines overlayed for manual transmission (blue) and automatic transmission (green). See "Appendix 4"
+
+FITTING THE REGRESSION MODELS
+
+After initial data exploration, I began to generate and attempt to fit regression models, starting with HP, CYL, DISP, and WT along with AM as the independent variables. See "Appendix 5"
+
+Then I summarized the fit analysis of the variance of the base model, noting that HP, CYL, and WT appeared to be the primary determining variables other than AM. See "Appendix 6"
+
+The model was then refined, removing the DISP variable which ultimately offered a better fit. See "Appendix 7"
+
+I note that the three remaining independent variables, HP, CYL, and WT may potentially be dependent upon one another and the model could be further refined, however, the three variable model has an adjusted R-Squared value of 82.7% and a significant P-Value. I then generated the final regression model. Cars with a manual transmission appear to have higher MPG by 1.48 when HP, CYL, and WT variables are held constant. See "Appendix 8"  
+
+ANALYZING THE FIT OF THE MODEL
+
+Finally, I performed an ANOVA anlaysis of the base regression model and the final regression model below. Note that the high F-value of 29.2 and low P-value close to 0 indicating this model is a better fit than relying on tranmission type as the sole independent variable affecting MPG. See "Appendix 9"
+
+PERFORMING MODEL DIAGNOSTICS
+
+To close, I performed a diagnostic on the model below. The model developed above assumes normality and constant variance for the model error term. This diagnostic shows those assumptions are valid. Viewing the diagnostic plots, I note:
+Residuals vs Fitted - Points are scattered and there appear to be no significant nonconstant variance (heteroscedasticity) and no nonlinearity.
+Normal Q-Q - Significant departures from the line suggest violations of normality. No such departures are noted here suggesting univariate normality.
+Scale-Location - Points are scattered in a "constant band" pattern suggesting constant variance.
+Residuals vs Leverage - There appear to be some outliers in this plot which may deserve further exploration.
+See "Appendix 10"
+
+APPENDIX
+
+Appendix1
+```{r, Appendix 1 - loading required packages and data}
+require(ggplot2); require(stats); require(graphics); require(gclus)
+df <- mtcars
+```
+
+Appendix 2
+```{r, Appendix 2}
+summary(lm(mpg~am,df))
+t.test(mpg~am, data=df) ## 
+```
+
+Appendix 3
+```{r, Appendix 3}
+dta <- df[c(1,2,3,4,5,6,7,8,9,10,11)] ## explore data to determine main factors in mpg other than transmission type
+dta.r <- abs(cor(dta)) 
+dta.col <- dmat.color(dta.r)
+dta.o <- order.single(dta.r) 
+cpairs(dta, dta.o, panel.colors=dta.col, gap=.5,
+       main="Variables Ordered and Colored by Correlation" )
+```
+
+Appendix 4
+```{r, Appendix 4}
+lmbothcyl <- lm(mpg~cyl+am,df) ## regression of mpg by cylinder and transmission
+lmbothdisp <- lm(mpg~disp+am,df) ## regression of mpg by displacement and transmission
+lmbothhp <- lm(mpg~hp+am,df) ## regression of mpg by horsepower and transmission
+lmbothwt <- lm(mpg~wt+am,df) ## regression of mpg by weight and transmission
+
+par(mfrow=c(2,2))
+## plot mpg by horsepower with regression by transmission
+plot(df$hp,df$mpg,pch=19)
+points(df$hp,df$mpg,pch=19,col=((df$am=="1")+3))
+abline(c(lmbothhp$coeff[1],lmbothhp$coeff[2]),col="green3",lwd=2)
+abline(c(lmbothhp$coeff[1] + lmbothhp$coeff[3],lmbothhp$coeff[2]),col="blue",lwd=2)
+
+## plot mpg by cylinder with regression by transmission
+plot(df$cyl,df$mpg,pch=19)
+points(df$cyl,df$mpg,pch=19,col=((df$am=="1")+3))
+abline(c(lmbothcyl$coeff[1],lmbothcyl$coeff[2]),col="green3",lwd=2)
+abline(c(lmbothcyl$coeff[1] + lmbothcyl$coeff[3],lmbothcyl$coeff[2]),col="blue",lwd=2)
+
+## plot mpg by displacement with regression by transmission
+plot(df$disp,df$mpg,pch=19)
+points(df$disp,df$mpg,pch=19,col=((df$am=="1")+3))
+abline(c(lmbothdisp$coeff[1],lmbothdisp$coeff[2]),col="green3",lwd=2)
+abline(c(lmbothdisp$coeff[1] + lmbothdisp$coeff[3],lmbothdisp$coeff[2]),col="blue",lwd=2)
+
+## plot mpg by weight with regression by transmission
+plot(df$wt,df$mpg,pch=19)
+points(df$wt,df$mpg,pch=19,col=((df$am=="1")+3))
+abline(c(lmbothwt$coeff[1],lmbothwt$coeff[2]),col="green3",lwd=2)
+abline(c(lmbothwt$coeff[1] + lmbothwt$coeff[3],lmbothwt$coeff[2]),col="blue",lwd=2)
+```
+
+Appendix 5
+```{r, Appendix 5}
+summary(lm(mpg ~ hp + cyl + disp + wt + am, df)) ## summarize base model
+```
+
+Appendix 6
+```{r, Appendix 6}
+summary(aov(mpg ~ hp + cyl + disp + wt + am, data = df)) ## summarize fit of analysis of base variance model
+```
+
+Appendix 7
+```{r, Appendix 7}
+summary(aov(mpg ~ hp + cyl + wt + am, data = df)) ## summarize fit of analysis of variance model
+```
+
+Appendix 8
+```{r, Appendix 8}
+summary(lm(mpg ~ hp + cyl + wt + am, df)) ## summarize regression
+```
+
+Appendix 9
+```{r, Appendix 9}
+anova(lm(mpg ~ am, df), lm(mpg ~ hp + cyl + wt + am, df)) ## (high f value and low p value)
+```
+
+Appendix 10
+```{r, Appendix 10}
+par(mfrow = c(2, 2))
+plot(lm(mpg ~ hp + cyl + wt + am, df))
+```
